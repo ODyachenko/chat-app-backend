@@ -16,12 +16,25 @@ import {
   deleteMessage,
   editMessage,
 } from './components/MessageContoller.js';
+import multer from 'multer';
 
 // Express settings
 const app = express();
 app.use(express.json());
+app.use('/uploads', express.static('uploads'));
 app.use(cors());
 dotenv.config();
+
+// Multer storage
+const storage = multer.diskStorage({
+  destination: (_, __, cb) => {
+    cb(null, 'uploads');
+  },
+  filename: (_, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
+const upload = multer({ storage });
 
 // Connect to DB
 mongoose
@@ -57,6 +70,13 @@ app.patch(
   handleValidationErrors,
   editMessage
 );
+
+// Multer route
+app.post('/uploads', upload.single('image'), (req, res) => {
+  res.json({
+    url: `/uploads/${req.file.originalname}`,
+  });
+});
 
 app.listen(process.env.PORT || 5555, (err) => {
   if (err) {
