@@ -1,22 +1,24 @@
 import express from 'express';
+import { createServer } from 'node:http';
+import { Server } from 'socket.io';
 import mongoose from 'mongoose';
+import multer from 'multer';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import checkAuth from './utils/checkAuth.js';
+import handleValidationErrors from './utils/handleValidationErrors.js';
+import { getMe, login, registration } from './components/UserController.js';
 import {
   loginValidation,
   regValidation,
   messageCreateValidation,
 } from './validations/validations.js';
-import checkAuth from './utils/checkAuth.js';
-import handleValidationErrors from './utils/handleValidationErrors.js';
-import { getMe, login, registration } from './components/UserController.js';
 import {
   getAllMessage,
   createMessage,
   deleteMessage,
   editMessage,
 } from './components/MessageContoller.js';
-import multer from 'multer';
 
 // Express settings
 const app = express();
@@ -24,6 +26,22 @@ app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 app.use(cors());
 dotenv.config();
+
+// Socket settings
+const server = createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST'],
+    credentials: true,
+  },
+});
+io.on('connection', (socket) => {
+  console.log('User connected', socket.id);
+  socket.on('disconnect', () => {
+    console.log('user disconnected');
+  });
+});
 
 // Multer storage
 const storage = multer.diskStorage({
@@ -78,7 +96,7 @@ app.post('/uploads', upload.single('image'), (req, res) => {
   });
 });
 
-app.listen(process.env.PORT || 5555, (err) => {
+server.listen(process.env.PORT || 5555, (err) => {
   if (err) {
     return console.log(err);
   }

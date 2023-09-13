@@ -6,7 +6,7 @@ export const regValidation = [
     min: 5,
   }),
   body('fullName', 'Name must be greater than 2 symbols').isLength({ min: 2 }),
-  body('avatarUrl', 'Incorrect avatar URL').optional().isURL(),
+  body('avatarUrl', 'Incorrect avatar URL').optional().isString(),
 ];
 
 export const loginValidation = [
